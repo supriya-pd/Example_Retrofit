@@ -43,7 +43,7 @@ public class ExampleAdapter extends RecyclerView.Adapter<ExampleAdapter.ExampleV
     @Override
     public void onBindViewHolder(@NonNull ExampleViewHolder holder, int position) {
         Poke_Info object = info.get(position);
-        holder.mImageView.setImageResource(R.drawable.ic_launcher_background);
+        Picasso.get().load(object.getThmbnailUrl()).into(holder.mImageView);
         holder.mTextView.setText(object.getTitle());
 
     }
