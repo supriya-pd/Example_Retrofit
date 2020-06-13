@@ -5,7 +5,10 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import android.content.ContentValues;
 import android.content.DialogInterface;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 import android.widget.TextView;
 
@@ -26,19 +29,32 @@ public class MainActivity extends AppCompatActivity {
 
     //Map<String,String> parameters;
     private RecyclerView mRecyclerView;
-    private RecyclerView.Adapter mAdapter;
+    private ExampleAdapter
+            mAdapter;
     private RecyclerView.LayoutManager mLayoutManager;
+    private SQLiteDatabase mDatabase;
     List<Poke_Info> poke_infos;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-
+        // poke_infos=new ArrayList<Poke_Info>();
+        PokeDBHelper dbHelper=new PokeDBHelper(this);
+        mDatabase=dbHelper.getWritableDatabase();
         Retrofit retrofit=new Retrofit.Builder().baseUrl("https://jsonplaceholder.typicode.com/")
                 .addConverterFactory(GsonConverterFactory.create()).build();
 
         jsonPlaceHolderApi=retrofit.create(JsonPlaceHolderApi.class);
+
+        mRecyclerView=findViewById((R.id.recycler_view));
+        mRecyclerView.setHasFixedSize(true);
+        mLayoutManager=new LinearLayoutManager(this);
+        mAdapter=new ExampleAdapter(this,getAllItems());
+        mRecyclerView.setLayoutManager(mLayoutManager);
+        mRecyclerView.setAdapter(mAdapter);
+
+
         Call<List<Poke_Info>> call=jsonPlaceHolderApi.getPoke();
         call.enqueue(new Callback<List<Poke_Info>>() {
             @Override
@@ -61,6 +77,16 @@ public class MainActivity extends AppCompatActivity {
                 }
 
                 poke_infos=response.body();
+                ContentValues cv=new ContentValues();
+
+                for(Poke_Info poke_info:poke_infos) {
+                    cv.put(PokeContract.PokeEntry.COLUMN_NAME, poke_info.getTitle());
+                    cv.put(PokeContract.PokeEntry.COLUMN_IMAGE, poke_info.getThumbnailUrl());
+
+
+                    mDatabase.insert(PokeContract.PokeEntry.TABLE_NAME, null, cv);
+                    mAdapter.swapCursor(getAllItems());
+                }
 
             }
 
@@ -78,15 +104,16 @@ public class MainActivity extends AppCompatActivity {
                 alertDialog.show();
             }
         });
-        mRecyclerView=findViewById((R.id.recycler_view));
-        mRecyclerView.setHasFixedSize(true);
-        mLayoutManager=new LinearLayoutManager(this);
-        mAdapter=new ExampleAdapter(poke_infos);
-        mRecyclerView.setLayoutManager(mLayoutManager);
-        mRecyclerView.setAdapter(mAdapter);
+
+
 
       //  getPosts();
       //  getComments();
+    }
+    private Cursor getAllItems()
+    {
+        return mDatabase.query(PokeContract.PokeEntry.TABLE_NAME,null,
+                null, null, null, null, PokeContract.PokeEntry.COLUMN_TIMESTAMP+" DESC");
     }
 
 
