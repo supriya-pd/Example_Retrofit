@@ -2,31 +2,29 @@ package com.example.pokemon;
 
 import com.google.gson.annotations.SerializedName;
 
+import java.util.List;
+
 public class Poke_Info {
-    private int albumId;
-    private int id;
-    private String title;
-    @SerializedName("url")
-    private String text;
-    private String thumbnailUrl;
 
-    public int getAlbumId() {
-        return albumId;
+    private int count;
+    private String next;
+    private String previous;
+    List<PokeArray> results;
+
+    public int getCount() {
+        return count;
     }
 
-    public int getId() {
-        return id;
+    public String getNext() {
+        return next;
     }
 
-    public String getTitle() {
-        return title;
+    public String getPrevious() {
+        return previous;
     }
 
-    public String getText() {
-        return text;
-    }
-
-    public String getThumbnailUrl(){
-        return thumbnailUrl;
+    public List<PokeArray> getResults() {
+        return results;
     }
 }
+

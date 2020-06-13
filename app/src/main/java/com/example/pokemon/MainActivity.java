@@ -33,7 +33,8 @@ public class MainActivity extends AppCompatActivity {
             mAdapter;
     private RecyclerView.LayoutManager mLayoutManager;
     private SQLiteDatabase mDatabase;
-    List<Poke_Info> poke_infos;
+    List<PokeArray> poke_infos;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -42,7 +43,7 @@ public class MainActivity extends AppCompatActivity {
         // poke_infos=new ArrayList<Poke_Info>();
         PokeDBHelper dbHelper=new PokeDBHelper(this);
         mDatabase=dbHelper.getWritableDatabase();
-        Retrofit retrofit=new Retrofit.Builder().baseUrl("https://jsonplaceholder.typicode.com/")
+        Retrofit retrofit=new Retrofit.Builder().baseUrl("https://pokeapi.co/api/v2/")
                 .addConverterFactory(GsonConverterFactory.create()).build();
 
         jsonPlaceHolderApi=retrofit.create(JsonPlaceHolderApi.class);
@@ -55,44 +56,46 @@ public class MainActivity extends AppCompatActivity {
         mRecyclerView.setAdapter(mAdapter);
 
 
-        Call<List<Poke_Info>> call=jsonPlaceHolderApi.getPoke();
-        call.enqueue(new Callback<List<Poke_Info>>() {
-            @Override
-            public void onResponse(Call<List<Poke_Info>> call, Response<List<Poke_Info>> response) {
+        Call<Poke_Info> call=jsonPlaceHolderApi.getPoke();
 
-                if(!response.isSuccessful())
-                {
-                   // textView.setText("Code: "+response.code());
-                    AlertDialog.Builder builder=new AlertDialog.Builder(MainActivity.this);
-                    builder.setTitle("Information").setMessage("Code: "+response.code()).setPositiveButton("OK", new DialogInterface.OnClickListener() {
+        call.enqueue(new Callback<Poke_Info>() {
+            @Override
+            public void onResponse(Call<Poke_Info> call, Response<Poke_Info> response) {
+
+                if (!response.isSuccessful()) {
+                    // textView.setText("Code: "+response.code());
+                    AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
+                    builder.setTitle("Information").setMessage("Code: " + response.code()).setPositiveButton("OK", new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
 
                         }
                     });
-                    AlertDialog alertDialog=builder.create();
+                    AlertDialog alertDialog = builder.create();
                     alertDialog.show();
 
                     return;
                 }
 
-                poke_infos=response.body();
-                ContentValues cv=new ContentValues();
 
-                for(Poke_Info poke_info:poke_infos) {
-                    cv.put(PokeContract.PokeEntry.COLUMN_NAME, poke_info.getTitle());
-                    cv.put(PokeContract.PokeEntry.COLUMN_IMAGE, poke_info.getThumbnailUrl());
+                poke_infos = response.body().getResults();
+                ContentValues cv = new ContentValues();
+
+                for (PokeArray poke_info : poke_infos) {
+                    cv.put(PokeContract.PokeEntry.COLUMN_NAME, poke_info.getName());
+                    cv.put(PokeContract.PokeEntry.COLUMN_IMAGE, poke_info.getUrl());
 
 
                     mDatabase.insert(PokeContract.PokeEntry.TABLE_NAME, null, cv);
                     mAdapter.swapCursor(getAllItems());
+
                 }
+
 
             }
 
             @Override
-            public void onFailure(Call<List<Poke_Info>> call, Throwable t) {
-                //textView.setText(t.getMessage());
+            public void onFailure(Call<Poke_Info> call, Throwable t) {
                 AlertDialog.Builder builder=new AlertDialog.Builder(MainActivity.this);
                 builder.setTitle("Information").setMessage(t.getMessage()).setPositiveButton("OK", new DialogInterface.OnClickListener() {
                     @Override
@@ -102,13 +105,11 @@ public class MainActivity extends AppCompatActivity {
                 });
                 AlertDialog alertDialog=builder.create();
                 alertDialog.show();
+
+
             }
-        });
 
-
-
-      //  getPosts();
-      //  getComments();
+    });
     }
     private Cursor getAllItems()
     {

@@ -1,5 +1,6 @@
 package com.example.pokemon;
 
+import java.lang.String;
 import android.content.Context;
 import android.database.Cursor;
 import android.view.LayoutInflater;
@@ -21,12 +22,14 @@ import static java.security.AccessController.getContext;
 public class ExampleAdapter extends RecyclerView.Adapter<ExampleAdapter.ExampleViewHolder> {
     private Context mContext;
     private Cursor mCursor;
+    int i;
 
     public ExampleAdapter(Context context,Cursor cursor) {
 
         //this.info=new ArrayList<Poke_Info>();
        mContext=context;
        mCursor=cursor;
+       i=0;
 
     }
 
@@ -62,11 +65,12 @@ public class ExampleAdapter extends RecyclerView.Adapter<ExampleAdapter.ExampleV
         String name=mCursor.getString(mCursor.getColumnIndex(PokeContract.PokeEntry.COLUMN_NAME));
         String image=mCursor.getString(mCursor.getColumnIndex(PokeContract.PokeEntry.COLUMN_IMAGE));
 
-          //Poke_Info object=new Poke_Info();
+
          holder.mTextView.setText(name);
 
-        Picasso.get().load(image).into(holder.mImageView);
-
+       Picasso.get().load("https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/"+
+              Integer.toString(i++)+".png").into(holder.mImageView);
+      // holder.mImageView.setImageResource(R.drawable.ic_launcher_background);
 
     }
 
